@@ -1,0 +1,282 @@
+---
+title: 'STA 141A Fall 202021: Homework 1'
+author: 'Wenzhuo Wu'
+date: "10/5/2021"
+output:
+  html_document:
+    number_sections: yes
+---
+# 1 Vectors and simulation
+Suppose that we have:
+
++ four types of animals: `cat`, `dog`, `cow`, `squirrel`;
++ four possible colors: `white`, `black`, `brown`, `red`;
++ five possible attributes: `big`, `small`, `angry`, `cute`, `finicky`.
+
+a. Generate random samples with replacement of size `100` from each of the types. Call the resulting vectors of character strings as: `Animal`, `Color`, `Attribute`. 
+
+```{r}
+animal <- c('cat','dog','cow','squirrel')
+color <- c("white", "black", "brown", "red")
+attribute <- c("big", "small", "angry", "cute", "finicky")
+Animal <- sample(animal, 100, replace = TRUE)
+Color <- sample(color, 100, replace = TRUE)
+Attribute <- sample(attribute, 100, replace = TRUE)
+```
+
+b. Compute how many animals in the sample are cats or dogs.
+```{r}
+sum (Animal=="cat") + sum (Animal=="dog")
+```
+
+c. Compute the relative frequency of cats, dogs, cows and squirrels in the sample. 
+```{r}
+table(Animal)/length(Animal)
+```
+
+d. Create a contingency table between `Animal` and `Attribute`.
+```{r}
+table(Animal,Attribute)
+```
+
+
+# 2 Matrices
+Consider the following system of linear equations
+\begin{align*}
+x_1+2x_2+3x_3+4x_4+5x_5&=7,\\
+2x_1+x_2+2x_3+3x_4+4x_5&=-1,\\
+3x_1+2x_2+x_3+2x_4+3x_5&=-3,\\
+4x_1+3x_2+2x_3+x_4+2x_5&=5,\\
+5x_1+4x_2+3x_3+2x_4+x_5&=17.
+\end{align*}
+
+a. Create the matrix `A` and the vector `y` corresponding to the matrix equation $Ax=y$, where $A\in\mathbb R^{5\times 5}$ and $x,y\in\mathbb R^5$.
+```{r}
+A <- matrix(c(1:5, c(2,1,2,3,4),c(3,2,1,2,3),c(4,3,2,1,2),5:1),nrow=5,ncol=5)
+y <- c(7,-1,-3,5,17)
+```
+
+b. Determine if the matrix `A` is invertible.
+```{r}
+if(det(A) != 0) print("'A' is invertible") else print("'A' is not invertivle")
+```
+
+c. Find the solution of the system of linear equations.
+
+```{r}
+sol <- solve(A,y)
+print(sol)
+```
+
+
+d. Verify that your solution is correct.
+```{r}
+residual=sol%*%A-y
+round(residual)
+```
+
+# 3 Data objects
+The dist() function is an R built-in function that takes a matrix (or a data frame) and returns the distance between the individuals (rows) of the matrix.
+a. Without using for loops or apply functions, create a matrix containing 10 rows and 5 columns. The elements of the matrix are integer numbers randomly selected from 1 to 10 (1 point).
+```{r}
+a <- c(1:10)
+matrix1 <- matrix(sample(a,50,replace = T),10,5)
+```
+
+b. Apply the dist() function to the above matrix and assign the output to an object called m_dist. Assume that you want to print the distances between the first 6 units. What does head(m_dist) return? What is the class of m_dist? What output would you expect if m_dist was a matrix? Write a code to print the first 6 rows of m_dist. (2 points)
+```{r}
+m_dist <- dist(matrix1)
+head(m_dist)
+class(m_dist)
+class(matrix1)
+m_dist1 <- as.matrix(m_dist)
+m_dist1[1:6,]
+```
+> head(m_dist) return 11.269428, 9.539392, 13.674794, 6.244998, 8.062258, 11.489125.
+> class of m_dist is "dist". if m_dist was a matrix, class of m_dist is "matrix".
+> m_dist1[1:6,]to print the first 6 rows of m_dist.
+
+# 4 Data exploration and manipulation
+The task is to explore the US census population estimates by county for 2015 from the package usmap (load the data frame from countypop.RData). The data frame has 3142 rows and 4 variables: fips is the 5-digit FIPS code corresponding to the county; abbr is the 2-letter state abbreviation; county is the full county name; pop_2015 is the 2015 population estimate (in number of people) for the corresponding county. Each row of the data frame represents a different county or a county equivalent. For the sake of simplicity, when we say a county, that also includes a county equivalent and when we say a state, that also includes the District of Columbia. Answer the following questions.
+
+
+```{r}
+load('countypop.RData')
+head(countypop)
+```
+
+a. Remove all the rows that contain at least one NA (1 point).
+
+```{r}
+countypop1 <- na.omit(countypop)
+```
+
+b. How many unique 2-letter state abbreviations are there (1 point)?
+```{r}
+length(unique(countypop1$abbr))
+```
+> There are 51 unique 2-letter state abbreviations
+
+c. What is the total number of counties in the US (2 point)?
+```{r}
+length(countypop1$county) 
+```
+> Total number of counties in the US is 3139.
+
+d. How many unique county names are there (1 point)?
+```{r}
+length(unique(countypop1$county))
+```
+> There are 1876 unique county names.
+
+e. What are the top 10 most common county names (1 point)?
+```{r}
+freq1 <- table(countypop1$county)
+countypop2 <- sort(freq1,decreasing = T)
+countypop2[row=1:10]
+
+```
+> The top 10 most common county names are Washington County, Jefferson County, Franklin County, Jackson County, Lincoln County, Madison County, Clay County Montgomery County, Marion County, Monroe County.
+
+f. Which state has the largest number of counties? Which state has the smallest number of counties (1 point)?
+```{r}
+freq2 <- table(countypop1$abbr)
+sort(freq2)
+```
+> TX has the largest number of counties, DC has smallest number of counties
+
+g. What is the average population of a county in the US (1 point)?
+```{r}
+mean(countypop1$pop_2015) 
+```
+> The average population of a county in the US is 102329.2
+
+h. Which state has the largest county in terms of population? How many people live in the largest county in terms of population (2 points)?
+```{r}
+split(countypop1$pop_2015,countypop1$county)
+a <- sapply(split(countypop1$pop_2015,countypop1$county),mean)
+sort(a, decreasing = T)
+```
+> CA has the largest county in terms of population, which is Los Angeles County. The population is 10170292.00.
+
+i. What is the largest county in terms of population of each of the states (2 points)?
+```{r}
+split_county <- split(countypop1,countypop1$abbr)
+largest_county= data.frame()
+for (i in 1:length(split_county)){
+  largest_po <- order(split_county[[i]]$pop_2015,decreasing = T)
+  county <- split_county[[i]][largest_po[1],]
+  largest_county <- rbind(largest_county,county)
+}
+print(largest_county)
+
+
+#####
+a <- split(countypop1,countypop1$abbr)
+max_pop <- function(one_state){
+  pos <- which.max(one_state$pop_2015)
+  one_state$county[pos]
+}
+
+b <- sapply(a,max_pop)
+b
+```
+
+
+
+j. What is the average population of the 100 largest counties in the US (2 points)?
+```{r}
+j <- sort(countypop1$pop_2015, decreasing = T)
+mean(j[1:100])
+```
+> 1370079 is the average population of the 100 largest counties in the US.
+
+k. How many people live in each of the states (2 points)?
+```{r}
+split(countypop1$pop_2015,countypop1$abbr)
+k <- sapply(split(countypop1$pop_2015,countypop1$abbr),sum)
+print(k)
+```
+
+
+l. What is the average population of a county in California (1 point)?
+```{r}
+l <- countypop1$pop_2015[countypop1$abbr=='CA']
+mean(l)
+```
+> The average population of a county in California is 674910.7.
+
+# 4.1 Extra credit (3 points)
+Repeat exercise 4 (questions e to l) using dplyr functions.
+```{r}
+library(dplyr)
+```
+
+a. Remove all the rows that contain at least one NA
+```{r}
+countypop %>% filter(!is.na(fips) &!is.na(abbr)&!is.na(county)&!is.na(pop_2015)) ->countypop2
+```
+
+b. How many unique 2-letter state abbreviations are there?
+```{r}
+countypop2 %>% count(abbr)
+```
+
+c. What is the total number of counties in the US?
+```{r}
+countypop2 %>% dim()
+```
+
+d. How many unique county names are there?
+```{r}
+countypop2 %>% count(county)%>% dim
+```
+
+e. What are the top 10 most common county names (1 point)?
+```{r}
+countypop2 %>% count(county) %>% arrange( desc(n) ) %>% slice(1:10) 
+```
+
+f. Which state has the largest number of counties? Which state has the smallest number of counties (1 point)?
+```{r}
+countypop2 %>% group_by(abbr)%>% count(county)%>%summarise(sum_county=sum(n))%>%arrange(desc(sum_county))%>%slice(1)
+
+countypop2 %>% group_by(abbr)%>% count(county)%>%summarise(sum_county=sum(n))%>%arrange((sum_county))%>%slice(1)
+
+```
+
+g. What is the average population of a county in the US (1 point)?
+```{r}
+countypop2 %>% summarise(mean(pop_2015))
+```
+
+h. Which state has the largest county in terms of population? How many people live in the largest county in terms of population (2 points)?
+```{r}
+countypop2 %>% arrange( desc(pop_2015) ) %>% slice(1) %>% select(county)
+countypop2 %>% arrange( desc(pop_2015) ) %>% slice(1) %>% select(abbr)
+```
+CA has the largest county in terms of population, which is Los Angeles County. The population is 10170292.00.
+
+i. What is the largest county in terms of population of each of the states (2 points)?
+```{r}
+countypop2%>% group_by(abbr)  %>% filter(pop_2015==max(pop_2015))
+```
+
+
+j. What is the average population of the 100 largest counties in the US (2 points)?
+```{r}
+countypop2 %>% arrange( desc(pop_2015) ) %>% slice(1:100)%>%summarise(mean(pop_2015))
+```
+
+k. How many people live in each of the states (2 points)?
+```{r}
+countypop2 %>% group_by(abbr) %>%summarise(mean(pop_2015))
+```
+
+
+l. What is the average population of a county in California (1 point)?
+```{r}
+countypop2 %>% filter(abbr=='CA') %>%summarise(mean(pop_2015))
+```
+
+
