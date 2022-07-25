@@ -1,0 +1,245 @@
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Multiple linear regression
+
+1. Run the following code to create the vectors x1, x2, and y.
+
+```{r}
+set.seed(1)
+n <- 100
+x1 <- runif(n)
+x2 <- runif(n,10,20)
+y <- 2+2*x1+0.3*x2+rnorm(n)
+```
+
+a. (2 pts) The last line of the code above corresponds to creating a linear model in which y is a function of x1 and x2. Write out the form of the linear model. What are the values of the regression coefficients β0, β1 and β2? What is the value of σ2?
+
+
+$$Y_{i} = \beta_{0} + \beta_{1} X_{1i} + \beta_{2} X_{2i} + \epsilon_{i} \quad i = 1, \cdots, n$$
+where $\beta_{0} = 2 \quad \beta_{1} = 2 \quad \beta_{2} = 0.3$.
+The value of σ2 is 1, because errors are n normally distributed random numbers with mean = 0, sd = 1.
+
+b. (2 pts) Use the function cor() to calculate the correlation coefficient between x1 and x2. Create a scatter plot using ggplot2 displaying the relationship between the variables x1 and x2. What can you say about the dierction and strength of their relationship?
+
+```{r}
+cor(x1,x2)
+library(ggplot2)
+ggplot( ) + 
+    geom_point(mapping = aes(x = x1, y = x2)) +
+  labs(title = "scatterplot between x1 and x2",x = "x1",y = "x2")
+```
+
+x1 and x2 are positively correlated with each other because r>0. But the strength is weak because r close to 0, which suggests little correlation. 
+
+c. (4 pts) Fit a least squares regression to predict y using x1 and x2. 
+Describe the obtained results. What are the values of β̂ 0, β̂ 1 and β̂ 2?
+How do these relate to the true values of β0, β1 and β2? 
+What is the value of s and how does it relate to the true value of σ2? 
+Can you reject the null hypothesis H0:β1=0? 
+How about the null hypothesis H0:β2=0?
+
+```{r}
+lm(y ~ x1 + x2)
+lreg<-lm(y ~ x1 + x2)
+summary(lreg)
+s <- sqrt(sum(lreg$res^2)/lreg$df.residual)
+```
+The fit model is 
+$$\hat{y} = 1.9763 + 1.9307 x_{1}+ 0.3014 x_{2}$$
+
+$\hat{\beta}_{0} = 1.9763 \quad \hat{\beta}_{1} = 1.9307 \quad \hat{\beta}_{2} = 0.3014$
+
+These obtained results are close to the true values.
+s is 0.9675158, which is close to the true value of σ2 (σ2=1).
+We can reject null hypothesis $H_0:\beta_1=0$ and null hypothesis $H_0:\beta_2=0$ because their P values are smaller than 0.001.
+
+d. (3 pts) Now fit a least squares regression to predict y using only x1. Comment on your results. What are the values of β̂ 0 and β̂ 1? How do these relate to the true values of β0 and β1? What is the value of s and how does it relate to the true value of σ2? Can you reject the null hypothesis H0:β1=0?
+
+```{r}
+lm(y ~ x1)
+lreg2<-lm(y ~ x1)
+summary(lreg2)
+s <- sqrt(sum(lreg2$res^2)/lreg2$df.residual)
+```
+
+The fit model is
+$$\hat{y} = 6.523 + 1.983 x_{1}$$
+
+$\hat{\beta}_{0} = 6.523 \quad \hat{\beta}_{2} = 1.983$
+
+$\hat{\beta}_{1}$is close to the true value 2 but $\hat{\beta}_{0}$is far away from the ttrue value 2.
+s is 1.267, which is close to the true value of σ2 (σ2=1).
+The result is siginficant and we can reject the null hypothesis $H_0:\beta_1=0$.
+
+e. (3 pts) Now fit a least squares regression to predict y using only x2. Comment on your results. What are the values of β̂ 0 and β̂ 2? How do these relate to the true values of β0 and β2? What is the value of s and does it relate to the true value of σ2? Can you reject the null hypothesis H0:β2=0?
+
+```{r}
+lm(y ~ x2)
+lreg3<-lm(y ~ x2)
+summary(lreg3)
+s <- sqrt(sum(lreg3$res^2)/lreg3$df.residual)
+```
+
+The fit model is
+$$\hat{y} = 2.9270 + 0.3047  x_{2}$$
+
+$\hat{\beta}_{0} = 2.9270 \quad \hat{\beta}_{2} = 0.3047$
+
+$\hat{\beta}_{0}$is a little bit far away from the true value 2, $\hat{\beta}_{2}$is close to true value 0.3.
+s is 1.094, which is close to the true value of σ2 (σ2=1).
+The result is siginficant and we can reject the null hypothesis $H_0:\beta_2=0$.
+
+
+2. Run the following code to create the vectors x1, x2, and y.
+```{r}
+set.seed(1)
+n <- 100
+x1 <- runif(n)
+x2 <- 0.5*x1+rnorm(n,0,.01)
+y <- 2+2*x1+0.3*x2+rnorm(n)
+```
+
+a. (8 pts) Repeat parts b, c, d, and e of Exercise 1 using the new vectors x1, x2 and y. What differences do you see between Exercise 1 and Exercise 2? Explain why these differences occur.
+
+```{r}
+#Repeat part b
+cor(x1,x2)
+library(ggplot2)
+ggplot( ) + 
+    geom_point(mapping = aes(x = x1, y = x2)) +
+  labs(title = "scatterplot between x1 and x2",x = "x1",y = "x2")
+```
+
+x1 and x2 are positively correlated with each other because r>0. But the strength is strong because r close to 1, which suggests almost a perfect postive linear relationship.
+
+```{r}
+#Repeat part c
+lm(y ~ x1 + x2)
+lreg<-lm(y ~ x1 + x2)
+summary(lreg)
+s <- sqrt(sum(lreg$res^2)/lreg$df.residual)
+```
+
+The fit model is 
+$$\hat{y} = 2.130 -1.754 x_{1}+ 7.397  x_{2}$$
+
+$\hat{\beta}_{0} = 2.130 \quad \hat{\beta}_{1} = -1.754 \quad \hat{\beta}_{2} = 7.397$
+
+These obtained results are quite far away from the true values.
+s is 1.056178, which is close to the true value of σ2 (σ2=1).
+We fail to reject null hypothesis $H_0:\beta_1=0$ and fail to reject null hypothesis $H_0:\beta_2=0$ because their P values are greater than 0.05.
+
+```{r}
+#Repeat part d
+lm(y ~ x1)
+lreg2<-lm(y ~ x1)
+summary(lreg2)
+s <- sqrt(sum(lreg2$res^2)/lreg2$df.residual)
+```
+
+The fit model is
+$$\hat{y} = 2.117 + 1.967  x_{1}$$
+$\hat{\beta}_{0} = 2.117 \quad \hat{\beta}_{1} = 1.967$
+
+$\hat{\beta}_{1}$ and $\hat{\beta}_{0}$ are close to the true value 2.
+s is 1.053078, which is close to the true value of σ2 (σ2=1).
+The result is siginficant and we can reject the null hypothesis $H_0:\beta_1=0$.
+
+```{r}
+#Repeat part e
+lm(y ~ x2)
+lreg3<-lm(y ~ x2)
+summary(lreg3)
+s <- sqrt(sum(lreg3$res^2)/lreg3$df.residual)
+```
+
+The fit model is
+$$\hat{y} = 2.120 + 3.927  x_{2}$$
+
+$\hat{\beta}_{0} = 2.120 \quad \hat{\beta}_{2} = 3.927$
+
+$\hat{\beta}_{0}$is a close to the true value 2, but $\hat{\beta}_{2}$is far away from the true value 0.3.
+s is 1.051285, which is close to the true value of σ2 (σ2=1).
+The result is siginficant and we can reject the null hypothesis $H_0:\beta_2=0$.
+
+The main difference is that x1 and x2 are highly correlated in question 2 but not in question 1. When the model only contains only x1 or x2 alone, the x variable fits the data well, and the estimate coefficient is significant. However, when the model contains both x1 and x2, because of collinearity, the part of SSTO interpreted by X variables has little increase then the estimate coefficients of x1 and x2 are not significant anymore.
+
+3. Use x1, x2 and y from Exercise 2 and suppose that we obtain one additional observation, which was unfortunately mismeasured.
+```{r}
+set.seed(1)
+n <- 100
+x1 <- runif(n)
+x2 <- 0.5*x1+rnorm(n,0,.01)
+y <- 2+2*x1+0.3*x2+rnorm(n)
+x1 <- c(x1, 0.1)
+x2 <- c(x2, 0.8)
+y <- c(y, 6)
+
+```
+
+(8 pts) Re-fit the linear models from parts c, d and e of Exercise 1 using this new data. What effect does this new observation have on each of the models? In each model, is this observation an outlier? A high-leverage point? Both? Explain your answers.
+
+```{r}
+#Repeat part c
+lm(y ~ x1 + x2)
+lreg<-lm(y ~ x1 + x2)
+summary(lreg)
+s <- sqrt(sum(lreg$res^2)/lreg$df.residual)
+par(mfrow = c(2,2))
+plot(lm(y ~ x1 + x2))
+```
+
+The fit model is 
+$$\hat{y} = 2.1250 - 0.5183 x_{1}+ 4.9440   x_{2}$$
+
+$\hat{\beta}_{0} = 2.1250  \quad \hat{\beta}_{1} = -0.5183 \quad \hat{\beta}_{2} = 4.9440$
+
+These obtained results are quite far away from the true values.
+s is 1.051, which is close to the true value of σ2 (σ2=1).
+We fail to reject null hypothesis $H_0:\beta_1=0$ because P value is greater than 0.05.
+We reject null hypothesis $H_0:\beta_2=0$ because P value are smaller than 0.05.
+Based on the residual plots, in this model, this observation is a high-leverage point but not an outlier. Because from residual plots, there is no outlier with a extreme residual. For leverage plot, there is one point 101 within the red dotted line labeled 1, so that point is a high-leverage point. 
+
+```{r}
+#Repeat part d
+lm(y ~ x1)
+lreg2<-lm(y ~ x1)
+summary(lreg2)
+s <- sqrt(sum(lreg2$res^2)/lreg2$df.residual)
+par(mfrow = c(2,2))
+plot(lm(y ~ x1))
+```
+
+The fit model is
+$$\hat{y} = 2.2616  + 1.7575  x_{1}$$
+$\hat{\beta}_{0} = 2.2616  \quad \hat{\beta}_{1} = 1.7575$
+
+$\hat{\beta}_{1}$ and $\hat{\beta}_{0}$ are close to the true value 2.
+s is 1.109, which is close to the true value of σ2 (σ2=1).
+The result is siginficant and we can reject the null hypothesis $H_0:\beta_1=0$.
+Based on the residual plots, in this model, this observation is not an outlier and not a high-leverage point. Because from residual plots and leverage plot, there is no extreme points.
+```{r}
+#Repeat part e
+lm(y ~ x2)
+lreg3<-lm(y ~ x2)
+summary(lreg3)
+s <- sqrt(sum(lreg3$res^2)/lreg3$df.residual)
+par(mfrow = c(2,2))
+plot(lm(y ~ x2))
+```
+
+The fit model is
+$$\hat{y} = 2.0773 + 4.1164  x_{2}$$
+
+$\hat{\beta}_{0} = 2.0773 \quad \hat{\beta}_{2} = 4.1164$
+
+$\hat{\beta}_{0}$is a close to the true value 2, but $\hat{\beta}_{2}$is far away from the true value 0.3.
+s is 1.048, which is close to the true value of σ2 (σ2=1).
+The result is siginficant and we can reject the null hypothesis $H_0:\beta_2=0$.
+Based on the residual plots, in this model, this observation is not an outlier and not a high-leverage point. Because from residual plots and leverage plot, there is no extreme points.
+
+
+
