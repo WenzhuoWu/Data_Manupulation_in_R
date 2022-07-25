@@ -1,0 +1,179 @@
+
+## Principal component analysis
+
+The goal of this exercise is to explore the environmental data set using principal component analysis (PCA) and to understand how much information we lose by reducing the dimension of the data set.
+
+The data set comes from the package lattice, but it can be loaded using the file environmental.RData which is available on Canvas. The data set contains daily measurements of ozone concentration, wind speed, temperature and solar radiation in New York City from May to September of 1973 (111 observations of 4 features).
+
+1. (1 points) Calculate the correlation matrix of all four variables. Determine which two correlation coefficients are the highest in absolute value. Include the names of the variables that lead to the two highest correlation coefficients in absolute value.
+
+```{r}
+load("~/Desktop/STA 141A/Week 9/HW6/environmental.RData")
+data <- environmental
+cor(data)
+```
+
+> correlation coefficients of temperature and ozone is the highest in absolute value (0.6985414). correlation coefficients of wind and ozone is the second highest in absolute value (0.6129508).
+
+2. (2 points) Calculate the loadings of the principal components as well as the standard deviations of the scores. The variables should be shifted to be zero centered and scaled to have unit variance before the calculation takes place.
+
+```{r}
+pr.out <- prcomp(data,scale.=TRUE)
+print(pr.out)
+```
+
+3. (1 points) Verify that the sum of squares of the loadings of each principal component is equal to 1.
+
+```{r}
+ss1 <- (pr.out$rotation[1,1])^2+(pr.out$rotation[2,1])^2 +(pr.out$rotation[3,1])^2 + (pr.out$rotation[4,1])^2
+
+ss2 <- (pr.out$rotation[1,2])^2+(pr.out$rotation[2,2])^2 +(pr.out$rotation[3,2])^2 + (pr.out$rotation[4,2])^2
+
+ss3 <- (pr.out$rotation[1,3])^2+(pr.out$rotation[2,3])^2 +(pr.out$rotation[3,3])^2 + (pr.out$rotation[4,3])^2
+
+ss4 <- (pr.out$rotation[1,4])^2+(pr.out$rotation[2,4])^2 +(pr.out$rotation[3,4])^2 + (pr.out$rotation[4,4])^2
+
+print(c(ss1,ss2,ss3,ss4))
+```
+
+4. (4 points) Which are the two largest loadings in absolute value of the first principal component (include the names of the variables)? How does that correspond to the correlation analysis of the first question?
+
+> For PC1, ozone (0.5890271) and temparture (0.5527125) has the largest loadings in absolute value. Aslo, correlation coefficients of these two variables are the highest in absolute value.
+
+5. (1 points) Write R code to output the largest loading in absolute value of the second principal component (include the name of the variable).
+
+```{r}
+maxloading <- max(pr.out$rotation[,2])
+maxloadingname <- rownames(pr.out$rotation)[which.max(pr.out$rotation[,2])]
+print(paste("The largest loading in absolute value of the second principal component is", maxloadingname, "which is ",maxloading ))
+```
+
+6. (2 points) What proportion of the total variance does the first principal component explain? What proportion of the total variance does the fourth principal component explain?
+
+```{r}
+summary(pr.out)
+```
+
+> The first principal component explained 59% total variance. 6.736% variance was explained by the fourth principal component. 100% cumulative variance was explained by the fourth principal component.
+
+7. (4 points) Is it enough to use the first two principal components if we want to explain at least 90% of the total variance? Explain your answer.
+
+> It's not enough to use the first two principal components to explain at least 90% of the total variance because the first two PCs only explained 81.37%. We need the first three PCs to explaine at least 90% of the total variance.
+
+8. (5 points) Create a biplot and explain what information we see in the biplot.
+```{r}
+biplot(pr.out)
+```
+
+> From the biplot, we can see temparature and ozone are positively and highly correlated with PC1. Wind is negatively correlated with PC1, and the strength of correlation is less than the strength of correlation between PC1 with temparature, ozone respectively. Radiation is positively correlated with PC1, but strength of correlation is the lowest. But radiation is highly and positively correlated with PC2. 
+
+> In sum, PC1 represent high ozone, high temparature and low wind. PC2 represent high radiation. Any observations in the upper right corner represent high PC 1 (high ozone, high temparature and low wind) and high PC2 (high radiation). Observations in the lower right corner represent high PC 1 (high ozone, high temparature and low wind) and low PC2 (low radiation). Observations in the upper left corner represent low PC 1 (low ozone, low temparature and high wind) and high PC2 (high radiation). Observations in the lower left corner represent low PC 1 (low ozone, low temparature and high wind) and low PC2 (low radiation).
+
+
+## Clustering (James et al. 2013, Ch. 10, p. 413)
+Consider the USArrests data contained in base R (type data(USArrests) and ?USArrests to read the help). You will now perform hierarchical clustering on the states.
+
+1. (2 points) Using hierarchical clustering with complete linkage and Euclidean distance, cluster the states.
+
+```{r}
+data2 <- USArrests
+library(MASS)
+hc.complete <- hclust(dist(data2), method="complete")
+plot(hc.complete)
+```
+
+2. (2 points) Cut the dendrogram at a height that results in three distinct clusters. Which states belong to which clusters?
+```{r}
+cut3 <- cutree(hc.complete, 3)
+table(cut3)
+print(cut3)
+```
+
+3. (3 points) Hierarchically cluster the states using complete linkage and Euclidean distance, after scaling the variables to have standard deviation one.
+
+```{r}
+
+data2.scale <- scale(USArrests)
+hc.complete.scale <- hclust(dist(data2.scale),method='complete')
+plot(hc.complete.scale)
+
+```
+
+
+4. (3 points) What effect does scaling the variables have on the hierarchical clustering obtained? In your opinion, should the variables be scaled before the inter-observation dissimilarities are computed? Provide a justification for your answer.
+
+> First, I will check if the states belongs to the same clusters when cut the dendrogram at a height that results in three distinct clusters.
+
+```{r}
+cut3.scale <- cutree(hc.complete.scale, 3)
+table(cut3.scale)
+print(cut3.scale)
+```
+
+> Based on the result, we can see the clusters are slightly different but they are pretty similar. I would recommend that scale the data because the units and scales of variables are different. 
+
+```{r}
+fivenum(data2$Murder)
+fivenum(data2$Assault)
+fivenum(data2$UrbanPop)
+fivenum(data2$Rape)
+```
+
+##Extra credit: Bootstrap
+
+Consider the dataset Default contained in the library ISLR. Consider a logistic regression model to predict the probability of default using income and balance. In particular, you will now compute estimates for the standard errors of the income and balance logistic regression coefficients in two different ways: (1) using the bootstrap, and (2) using the standard formula for computing the standard errors in the glm() function.
+
+1. (1 point) Using the summary() and glm() functions, determine the estimated standard errors for the coefficients associated with income and balance in a multiple logistic regression model that uses both predictors.
+
+```{r}
+library(ISLR)
+library(MASS)
+attach(Default)
+set.seed(1)
+lr<-glm(default~income+balance,family = binomial,data=Default)
+summary(lr)
+```
+
+> The estimated standard errors for the coefficients associated with income and balance are 4.985e-06 and 2.274e-04.
+
+2. (2 points) Write a function, called boot.fn(), that takes as input the Default data set as well as an index of the observations, and returns the coefficient estimates for income and balance in the multiple logistic regression model.
+```{r}
+boot.fn <- function(data, index) {
+    fit <- glm(default ~ income + balance, data = data, family = "binomial", subset = index)
+    return (coef(fit))
+}
+```
+
+
+3. (2 points) Load boot library. Use the boot() function (from the boot library) together with your boot.fn() function to estimate the standard errors of the logistic regression coefficients for income and balance (consider 1,000 samples). Comment on the estimated standard errors obtained using the glm() function and using your bootstrap function.
+
+```{r}
+library(boot)
+set.seed(1)
+sta <- boot(Default, boot.fn, 1000)
+print(sta)
+```
+>The bootstrap estimates of the standard errors for the coefficients β0, β1 and β2 are 4.344722e-01, 4.866284e-06 and 2.298949e-04.The two methods got similar estimated standard errors.
+
+
+4.(1 point) Use ggplot2 to display a histogram of the 1,000 bootstrap estimates of β1 and β2.
+
+```{r}
+
+data3 <- data.frame(
+  name=factor(rep("beta_1",1000)),
+  beta_1=sta$t[,2]
+  )
+mode(data3)
+library(ggplot2)
+ggplot(data3, aes(x=beta_1)) + geom_histogram() 
+
+data4 <- data.frame(
+  name=factor(rep("beta_2",1000)),
+  beta_2=sta$t[,3]
+  )
+library(ggplot2)
+ggplot(data4, aes(x=beta_2)) + geom_histogram() 
+
+```
+
