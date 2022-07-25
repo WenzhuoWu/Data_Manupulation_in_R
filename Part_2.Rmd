@@ -1,0 +1,102 @@
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1 For loops: find the bug
+
+The following for loop creates a vector that contains the sum of the first n numbers. In particular, if you set n = 10, the for loop should return a vector of size 10 containing the values 1, (1+2), (1+2+3), …., (1+2+3+4+5+6+7+8+9+10). In words, explain why this for loop does not return the desired vector, and write the correct code (6 points).
+```{r}
+n <- 10
+sums <- numeric(n)
+for (i in 1:n) {
+  sums <- sum(1:i)
+}
+sums
+```
+> Because this for loop result, which is sums, only contains one value (sum of the first n numbers). So we should use sums[i] instead of sums, and include i=i+1 in the function.
+
+```{r}
+n <- 10
+sums <- numeric(n)
+for (i in 1:10) {
+  sums[i] <- sum(1:i)
+  i=i+1
+}
+sums
+```
+
+## 2 Functions and control flows: 3n+1 problem
+
+(6 points) Build a function that generates the following sequence of numbers. Start with any positive integer n, then each term is obtained from the previous term as follows: if the previous term is even, the next term is one half of the previous one. If the previous term is odd, the next term is 3 times the previous term plus 1. The function stops when the sequence reaches 1. Note that the sequence will eventually reach 1.
+
+This is called Collatz conjecture (also called 3n+1 problem https://www.youtube.com/watch?v=094y1Z2wpJg, https://en.wikipedia.org/wiki/Collatz_conjecture), and the conjecture is that, no matter what value of n, the sequence will always reach 1.
+
+```{r}
+Question_2<- function(x){
+  if (x==1) stop('The sequence reaches 1')
+  else if (x %% 2==0) {
+    x=x/2
+    return(x)
+  } else {
+    x=3*x +1
+    return(x)
+  }
+}
+```
+
+(2 points) Run your function 3 times setting 7, 10, and 15, as start points.
+```{r}
+
+Question_2(Question_2(Question_2(x=7)))
+Question_2(Question_2(Question_2(x=10)))
+Question_2(Question_2(Question_2(x=15)))
+```
+
+## 3 Functions and control flows
+a. Write an R function called descr_stats that, given a data frame, returns the number of missing values per each variable, the mean and the sample variance for all the numeric variables, and the most frequent value for the categorical variables (8 points). Feel free to use the mean() and var() functions which are available in base R. By categorical I mean factor or character vectors. Make sure that the mean and the sample variance do not return NA.
+
+```{r}
+# Identify missing value
+missing_value <- function(x){
+  na_num <-  colSums(is.na(x))
+  return(na_num)
+}
+
+# Identify numeric columns
+descr1 <- function(x) {
+  num_cols <- unlist(lapply(x, is.numeric))
+  data_num <- x[ , num_cols]
+  n = ncol(data_num)
+  n <- as.numeric(n)
+  descr <- matrix(ncol=2, nrow = n)
+  for (i in 1:n) {
+      descr[i,] <- c(mean(unlist(data_num[,i]),na.rm = T), var(unlist(data_num[,i]), na.rm = T))
+      colnames(descr) <- c('mean', 'sample variance')
+      rownames(descr) <- colnames(data_num)
+  }
+  return(descr)
+}
+
+#identify categorical variable
+descr2 <- function(x){
+  num_cols2 <- unlist(lapply(x, is.character))
+  data_num2 <- x[ , num_cols2]
+  n2 = ncol(data_num2)
+  descr2 <- apply(data_num2,2,function(x) names(which.max(table(x))))
+  (return(descr2))
+  }
+
+# Combine functions
+summary_stats <- function(x) {
+  return(list(missing_value = missing_value(x),
+              descr1 = descr1(x),
+              descr2 = descr2(x)))
+}
+
+load('countypop.RData')
+
+summary_stats(x=countypop)
+```
+
