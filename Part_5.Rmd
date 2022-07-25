@@ -1,0 +1,230 @@
+
+
+## Classification
+
+The goal of this homework assignment is to compare the k-NN classifier, linear discriminant analysis (LDA) and the logistic model in a binary classification problem.
+
+1.Consider Fisher’s iris data set. Extract the data corresponding to the flower types versicolor and virginica, numbering a total of 100 flowers. Set aside the first 10 observations for each flower type as test data and use the remaining data consisting of 80 observations (with flower types as class labels) as training data (1.5 points).
+
+```{r}
+data <- iris[iris$Species!="setosa",]
+rownames(data) <- 1:100
+data$Species <- factor(data$Species)# versicolor <- 0; virginica <-1 as a factor
+data_test <- rbind(data[data$Species=="versicolor",][1:10,],data[data$Species=="virginica",][1:10,])
+data_training <- rbind(data[data$Species=="versicolor",][-(1:10),],data[data$Species=="virginica",][-(1:10),])
+```
+
+2. Use LDA for classifying the test data. Use Sepal.Length and Sepal.Width as the predictor variables (or features) (1.5 points).
+
+```{r}
+library(MASS)
+lda_fit<-lda(Species~Sepal.Length+Sepal.Width,data=data_training)
+
+```
+
+a. Report the class-specific means of the predictor variables for the training data (1.5 points).
+
+```{r}
+means <- lda_fit$means
+print(means)
+```
+
+b. Compute the confusion matrix for the test data and the misclassification error rate (1.5 points).
+
+```{r}
+lda_pred<-predict(lda_fit,data_test)
+lda_cm<-table(Class=data_test$Species,Prediction=lda_pred$class)
+print(lda_cm)
+1-sum(diag(lda_cm))/sum(lda_cm)
+
+```
+> The misclassification error rate is 0.4.
+
+3. Use the logistic model, fitted to the training data, to classify the test data.
+a. Fit a logistic model to the training data, using the variables Sepal.Length and Sepal.Width as predictors (3 points).
+
+```{r}
+logreg <- glm(Species ~ Sepal.Length + Sepal.Width, data = data_training, family = binomial)
+```
+
+i. Obtain the estimates and their standard errors for the model parameters (1.5 points).
+
+```{r}
+summary(logreg)
+print(logreg$coefficients)
+```
+
+> The estimates for Intercept, Sepal.Length and Sepal.Width are -18.1620, 2.5495 and 0.8173. The standard errors are 4.3571,0.7097 and 1.0109. 
+
+ii. Compute the confusion matrix for the test data and the misclassification error rate (1.5 points).
+
+```{r}
+predicted<-ifelse(predict(logreg, data_test, type = "response")<.5,"versicolor","virginica")
+confusion<-table(predicted,factor(data_test$Species),dnn = c("Predicted species","True species"))
+print(confusion)
+1-sum(diag(confusion))/sum(confusion)
+
+```
+> The misclassification error rate is 0.4.
+
+iii. Are both of the predictor variables necessary for the purpose of classification? Explain your answer (3 points).
+
+> No. From the t-test we can see that the estimate of Sepal.Width’s coefficient is not significant. So we can remove the variable Sepal.Width.
+
+b. Fit a logistic regression model to the training data, using the variable Sepal.Length as a one-dimensional predictor (3 points).
+i. Obtain the estimates and their standard errors for the model parameters (1.5 points).
+
+```{r}
+logreg_1 <- glm(Species ~ Sepal.Length, data = data_training, 
+              family = binomial)
+summary(logreg_1)
+print(logreg_1$coefficients)
+
+```
+
+> The estimates for Intercept and Sepal.Length are -17.1552 and 2.7647; Their error rate are 4.1251 and 0.6668.
+
+ii. Compute the confusion matrix for the test data, and the misclassification error rate (1.5 points).
+
+```{r}
+predicted<-ifelse(predict(logreg_1, data_test, type = "response")<.5,"versicolor","virginica")
+confusion<-table(predicted,factor(data_test$Species),dnn = c("Predicted species","True species"))
+print(confusion)
+1-sum(diag(confusion))/sum(confusion)
+```
+
+> The misclassification error rate of reduced logistic regression is 0.4.
+
+iii. Compare the results with those in 3(a). Does your result in 3(b)(ii) support the answer to 3(a)(iii) (3 points)?
+
+> The result of 3(b)(ii) is same as the result of 3(a)(ii). So we can delete the variable Sepal.Width.
+
+4. Use the k-nearest neighbors (k-NN) classification method to classify the test data, using only Sepal.Length as the predictor variable. Perform this analysis using k=1 and k=5. In each case, compute the confusion matrix for the test data, and the misclassification error rate (3 points).
+
+```{r}
+#k <- 1
+#knn <- function(x){
+    #return(apply(as.matrix(dist(c(x, data_training$Sepal.Length))),1,order)[[2]])
+#}
+
+#knn_1 <- sapply(data_test$Sepal.Length, knn)
+#pr <- function(i)
+#	{
+#		mean(data_training$Species[i]=="versicolor")
+#}
+
+#Pr.first <- sapply(knn_1,pr)
+#df <- cbind(data_test,Pr=knn_1,Pred=ifelse(Pr.first>.5,"versicolor","virginica"))
+
+# confusion table
+#table(df$Sp,df$Pred)
+#1- sum(diag(table(df$Sp,df$Pred)))/20
+library(class)
+y_pred = knn(train = data_training[, 1,drop=F],
+             test = data_test[, 1,drop=F],
+             cl = data_training[, 5],
+             k = 1,
+             prob = TRUE)
+cm = table(data_test[, 5], y_pred)
+print(cm)
+1-sum(diag(cm))/sum(cm)
+```
+
+> The misclassification error rate of KNN where k=1 is 0.35.
+
+```{r}
+#k <- 5
+#knn <- function(x){
+    #return(apply(as.matrix(dist(c(x, data_training$Sepal.Length))),1,order)[2:(k+1),1])
+#}
+
+#knn_5 <- sapply(data_test$Sepal.Length, knn)
+#pr <- function(i)
+	#{
+	#	mean(data_training$Species[i]=="versicolor")
+#}
+
+#Pr.first <- apply(knn_5,2,pr)
+#df <- cbind(data_test,Pr=knn_5,Pred=ifelse(Pr.first>.5,"versicolor","virginica"))
+
+# confusion table
+#table(df$Sp,df$Pred)
+#1- sum(diag(table(df$Sp,df$Pred)))/20
+
+#
+library(class)
+y_pred = knn(train = data_training[, 1,drop=F],
+             test = data_test[, 1,drop=F],
+             cl = data_training[, 5],
+             k = 5,
+             prob = TRUE)
+cm = table(data_test[, 5], y_pred)
+print(cm)
+1-sum(diag(cm))/sum(cm)
+
+```
+
+> The misclassification error rate of KNN where k=5 is 0.4.
+
+5. Write a very brief summary (maximum of 100 words) about the comparative performance of the three different classification methods for this data set (3 points).
+
+> For this data set, we can see that using LDA or logistic regression can obtain the same result by using X variables as Sepal.Length and Sepal.Width. Additionally, removing Sepal.Width can still get the same result in logistic regression. From table we can see they deal better with true virginica than true versicolor. As for k-NN, the classification error rate increases from k=1 to k=5. When k=1, classification error rate is 0.4, which is equal to the classification error rate from other methods. From table we can see that 1-NN deals better with true versicolor than true virginica.
+
+## Extra credit
+Re-run parts 2) and 4) using versicolor and setosa. Compare the results with the previous ones. Is classifying flowers into these two species ``easier" than classifying into versicolor and virginica?
+
+```{r}
+data <- iris[iris$Species!="virginica",]
+data$Species <- factor(data$Species) # versicolor <- 1; setosa <-0 as a factor
+rownames(data) <- 1:100
+data_test <- rbind(data[data$Species == "versicolor",][1:10,],data[data$Species == "setosa",][1:10,])
+data_training <- rbind(data[data$Species == "versicolor",][-(1:10),],data[data$Species == "setosa",][-(1:10),])
+```
+
+2. Use LDA for classifying the test data. Use `Sepal.Length` and `Sepal.Width` as the predictor variables (or features)
+    a) Report the class-specific means of the predictor variables for the training data.
+
+```{r}
+lda_fit<-lda(Species~Sepal.Length+Sepal.Width,data=data_training)
+means <- lda_fit$means
+print(means)
+```
+
+ b) Compute the confusion matrix for the test data and the misclassification error rate.
+ 
+```{r}
+lda_pred<-predict(lda_fit,data_test)
+lda_cm<-table(Class=data_test$Species,Prediction=lda_pred$class)
+print(lda_cm)
+lda_mer <- 1-sum(diag(lda_cm))/sum(lda_cm)
+
+```
+
+> The misclassification error rate of LDA is 0.
+
+4. Use the k-nearest neighbors (k-NN) classification method to classify the test data, using only Sepal.Length as the predictor variable. Perform this analysis using k=1 and k=5. In each case, compute the confusion matrix for the test data, and the misclassification error rate (3 points).
+
+```{r}
+library(class)
+y_pred = knn(train = data_training[, 1,drop=F],
+             test = data_test[, 1,drop=F],
+             cl = data_training[, 5],
+             k = 1,
+             prob = TRUE)
+cm = table(data_test[, 5], y_pred)
+print(cm)
+1-sum(diag(cm))/sum(cm)
+```
+> The misclassification error rate is 0.1.
+
+```{r}
+y_pred = knn(train = data_training[, 1,drop=F],
+             test = data_test[, 1,drop=F],
+             cl = data_training[, 5],
+             k = 5,
+             prob = TRUE)
+cm = table(data_test[, 5], y_pred)
+print(cm)
+1-sum(diag(cm))/sum(cm)
+```
+> The misclassification error rate is 0.1. Because the misclassification error is lower, classifying flowers into these two species easier than classifying into versicolor and virginica.
